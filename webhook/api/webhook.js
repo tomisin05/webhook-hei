@@ -1,4 +1,4 @@
-// import { saveMessage } from '../../firebase/lib/messages.js';
+import { saveMessage } from '../../firebase/lib/messages.js';
 
 // const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 // const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
@@ -111,6 +111,14 @@ module.exports = async function handler(req, res) {
               for (const message of messages || []) {
                 logs.push('Message received: ' + message.type);
                 console.log('Received message:', message);
+                await saveMessage({
+                messageId: message.id,
+                from: message.from,
+                type: message.type,
+                text: message.text?.body || null,
+                timestamp: new Date(parseInt(message.timestamp) * 1000),
+                phoneNumberId: change.value.metadata.phone_number_id
+                });
 
                 if (message.type === 'text') {
                   logs.push('Sending echo message');
