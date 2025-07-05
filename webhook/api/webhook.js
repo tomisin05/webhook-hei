@@ -8,7 +8,6 @@ export default async function handler(req, res) {
   const logs = [];
   
   try {
-    logs.push('Webhook called: ' + req.method + ' ' + req.url);
     console.log('Webhook called:', req.method, req.url);
 
     if (req.method === 'GET') {
@@ -23,31 +22,34 @@ export default async function handler(req, res) {
       }
     } else if (req.method === 'POST') {
       const body = req.body;
-      logs.push('POST body received');
       console.log('POST body:', JSON.stringify(body, null, 2));
 
       if (body.object === 'whatsapp_business_account') {
-        logs.push('Processing WhatsApp message');
+        console.log('Processing WhatsApp message');
         
         for (const entry of body.entry || []) {
           for (const change of entry.changes || []) {
             if (change.field === 'messages') {
               const messages = change.value.messages;
               for (const message of messages || []) {
-                logs.push('Message received: ' + message.type);
                 console.log('Received message:', message);
                 
+                // await saveMessage({
+                //   messageId: message.id,
+                //   from: message.from,
+                //   type: message.type,
+                //   text: message.text?.body || null,
+                //   timestamp: parseInt(message.timestamp),
+                //   phoneNumberId: change.value.metadata.phone_number_id
+                // });
+
                 await saveMessage({
-                  messageId: message.id,
-                  from: message.from,
-                  type: message.type,
-                  text: message.text?.body || null,
-                  timestamp: parseInt(message.timestamp),
-                  phoneNumberId: change.value.metadata.phone_number_id
+                   text: message.text?.body || null,
+
                 });
 
                 if (message.type === 'text') {
-                  logs.push('Sending echo message');
+                  console.log('Sending echo message');
                   await sendMessage(message.from, `Echo: ${message.text.body}`, logs);
                 }
               }
@@ -55,21 +57,20 @@ export default async function handler(req, res) {
           }
         }
         
-        logs.push('Sending response');
+        console.log('Sending response');
         res.status(200).json({ status: 'EVENT_RECEIVED', logs });
       } else {
         res.status(404).json({ error: 'Not Found', logs });
       }
     }
   } catch (error) {
-    logs.push('Error: ' + error.message);
     console.error('Handler error:', error);
     res.status(500).json({ error: error.message, logs });
   }
 }
 
 async function sendMessage(to, text, logs) {
-  logs.push('Attempting to send message to: ' + to);
+  console.log('Attempting to send message to: ' + to);
   console.log('Sending message to:', to, 'Text:', text);
   console.log('Using PHONE_NUMBER_ID:', PHONE_NUMBER_ID);
   console.log('Using ACCESS_TOKEN:', ACCESS_TOKEN ? 'Set' : 'Missing');
@@ -90,16 +91,13 @@ async function sendMessage(to, text, logs) {
     });
     
     const responseText = await response.text();
-    logs.push('API Response: ' + response.status + ' - ' + responseText);
     console.log('API Response Status:', response.status);
     console.log('API Response:', responseText);
     
     if (!response.ok) {
-      logs.push('API Error: ' + response.status);
       console.error('API Error:', response.status, responseText);
     }
   } catch (error) {
-    logs.push('Send error: ' + error.message);
     console.error('Error sending message:', error.message);
   }
 }
