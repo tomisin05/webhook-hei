@@ -1,5 +1,5 @@
 import { saveMessage } from '../../firebase/lib/messages.js';
-import { Timestamp } from 'firebase/firestore';
+// import { Timestamp } from 'firebase/firestore';
 // const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 // const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 // const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
@@ -116,7 +116,7 @@ module.exports = async function handler(req, res) {
                 from: message.from,
                 type: message.type,
                 text: message.text?.body || null,
-                timestamp: Timestamp.fromMillis(parseInt(message.timestamp) * 1000),
+                // timestamp: Timestamp.fromMillis(parseInt(message.timestamp) * 1000),
                 phoneNumberId: change.value.metadata.phone_number_id
                 });
 
