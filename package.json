@@ -1,0 +1,17 @@
+{
+  "name": "whatsapp-webhook",
+  "version": "1.0.0",
+  "description": "WhatsApp webhook for Vercel",
+  "main": "api/webhook.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "firebase": "^10.7.1"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
