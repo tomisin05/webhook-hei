@@ -33,10 +33,11 @@ export default async function handler(req, res) {
                 messageId: message.id,
                 from: message.from,
                 type: message.type,
-                text: message.text?.body,
-                timestamp: message.timestamp,
+                text: message.text?.body || null,
+                timestamp: new Date(parseInt(message.timestamp) * 1000),
                 phoneNumberId: change.value.metadata.phone_number_id
-              });
+                });
+
               
               if (message.type === 'text') {
                 await sendMessage(message.from, `Echo: ${message.text.body}`);
