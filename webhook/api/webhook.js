@@ -193,43 +193,103 @@ export default async function handler(req, res) {
   }
 }
 
+// async function processMessagesAsync(body) {
+//   for (const entry of body.entry || []) {
+//     for (const change of entry.changes || []) {
+//       if (change.field === 'messages') {
+//         const messages = change.value.messages;
+//         for (const message of messages || []) {
+//           await saveMessage({
+//             messageId: message.id,
+//             from: message.from,
+//             type: message.type,
+//             text: message.text?.body || null,
+//             timestamp: Timestamp.fromMillis(parseInt(message.timestamp) * 1000),
+//             phoneNumberId: change.value.metadata.phone_number_id
+//           });
+
+//           if (message.type === 'text') {
+//             const customerId = message.from;
+//             const userMessage = message.text.body;
+            
+//             await saveChatMessage(customerId, userMessage, false);
+            
+//             try {
+//               const aiResponse = await generateResponseWithHistory(customerId, userMessage);
+//               const responseData = JSON.parse(aiResponse);
+//               await saveChatMessage(customerId, responseData.message, true);
+//               await sendMessage(customerId, responseData.message);
+//             } catch (error) {
+//               const fallbackMessage = "Sorry, I encountered an error processing your request.";
+//               await saveChatMessage(customerId, fallbackMessage, true);
+//               await sendMessage(customerId, fallbackMessage);
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+
+
+
+// webhook/api/webhook.js (update processMessagesAsync function)
 async function processMessagesAsync(body) {
+  console.log('Starting async message processing...');
+  
   for (const entry of body.entry || []) {
     for (const change of entry.changes || []) {
       if (change.field === 'messages') {
         const messages = change.value.messages;
         for (const message of messages || []) {
-          await saveMessage({
-            messageId: message.id,
-            from: message.from,
-            type: message.type,
-            text: message.text?.body || null,
-            timestamp: Timestamp.fromMillis(parseInt(message.timestamp) * 1000),
-            phoneNumberId: change.value.metadata.phone_number_id
-          });
+          console.log('Processing message:', message.id);
+          
+          try {
+            // Save message to database
+            console.log('Saving message to database...');
+            await saveMessage({
+              messageId: message.id,
+              from: message.from,
+              type: message.type,
+              text: message.text?.body || null,
+              timestamp: Timestamp.fromMillis(parseInt(message.timestamp) * 1000),
+              phoneNumberId: change.value.metadata.phone_number_id
+            });
+            console.log('Message saved successfully');
 
-          if (message.type === 'text') {
-            const customerId = message.from;
-            const userMessage = message.text.body;
-            
-            await saveChatMessage(customerId, userMessage, false);
-            
-            try {
-              const aiResponse = await generateResponseWithHistory(customerId, userMessage);
-              const responseData = JSON.parse(aiResponse);
-              await saveChatMessage(customerId, responseData.message, true);
-              await sendMessage(customerId, responseData.message);
-            } catch (error) {
-              const fallbackMessage = "Sorry, I encountered an error processing your request.";
-              await saveChatMessage(customerId, fallbackMessage, true);
-              await sendMessage(customerId, fallbackMessage);
+            if (message.type === 'text') {
+              const customerId = message.from;
+              const userMessage = message.text.body;
+              
+              console.log('Saving chat message...');
+              await saveChatMessage(customerId, userMessage, false);
+              console.log('Chat message saved');
+              
+              try {
+                console.log('Generating AI response...');
+                const aiResponse = await generateResponseWithHistory(customerId, userMessage);
+                console.log('AI response generated');
+                
+                const responseData = JSON.parse(aiResponse);
+                await saveChatMessage(customerId, responseData.message, true);
+                await sendMessage(customerId, responseData.message);
+              } catch (error) {
+                console.error('Error in AI processing:', error);
+                const fallbackMessage = "Sorry, I encountered an error processing your request.";
+                await saveChatMessage(customerId, fallbackMessage, true);
+                await sendMessage(customerId, fallbackMessage);
+              }
             }
+          } catch (error) {
+            console.error('Error processing message:', message.id, error);
           }
         }
       }
     }
   }
+  console.log('Async processing completed');
 }
+
 
 async function sendMessage(to, text) {
   try {
