@@ -29,10 +29,39 @@ export default async function handler(req, res) {
       const body = req.body;
       console.log('POST body:', JSON.stringify(body, null, 2));
 
+      res.status(200).json({ status: 'EVENT_RECEIVED' });
+
       if (body.object === 'whatsapp_business_account') {
         console.log('Processing WhatsApp message');
         
-        for (const entry of body.entry || []) {
+        
+        
+      processMessagesAsync(body).catch(error => {
+          console.error('Async processing error:', error);
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Handler error:', error);
+    res.status(500).json({ error: error.message, logs });
+  }
+}
+
+
+//         console.log('Sending response');
+//         res.status(200).json({ status: 'EVENT_RECEIVED', logs });
+//       } else {
+//         res.status(404).json({ error: 'Not Found', logs });
+//       }
+//     }
+//   } catch (error) {
+//     console.error('Handler error:', error);
+//     res.status(500).json({ error: error.message, logs });
+//   }
+// }
+
+async function processMessagesAsync(body) {
+    for (const entry of body.entry || []) {
           for (const change of entry.changes || []) {
             if (change.field === 'messages') {
               const messages = change.value.messages;
@@ -81,18 +110,7 @@ export default async function handler(req, res) {
             }
           }
         }
-        
-        console.log('Sending response');
-        res.status(200).json({ status: 'EVENT_RECEIVED', logs });
-      } else {
-        res.status(404).json({ error: 'Not Found', logs });
-      }
     }
-  } catch (error) {
-    console.error('Handler error:', error);
-    res.status(500).json({ error: error.message, logs });
-  }
-}
 
 async function sendMessage(to, text, logs) {
   console.log('Attempting to send message to: ' + to);
