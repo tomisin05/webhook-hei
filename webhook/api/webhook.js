@@ -250,16 +250,22 @@ async function processMessagesAsync(body) {
           
           try {
             // Save message to database
-            console.log('Saving message to database...');
-            await saveMessage({
-              messageId: message.id,
-              from: message.from,
-              type: message.type,
-              text: message.text?.body || null,
-              timestamp: Timestamp.fromMillis(parseInt(message.timestamp) * 1000),
-              phoneNumberId: change.value.metadata.phone_number_id
-            });
-            console.log('Message saved successfully');
+            // console.log('Saving message to database...');
+            // await saveMessage({
+            //   messageId: message.id,
+            //   from: message.from,
+            //   type: message.type,
+            //   text: message.text?.body || null,
+            //   timestamp: Timestamp.fromMillis(parseInt(message.timestamp) * 1000),
+            //   phoneNumberId: change.value.metadata.phone_number_id
+            // });
+            // console.log('Message saved successfully');
+
+            // In webhook.js, replace saveMessage call with:
+            console.log('Testing simple Firebase write...');
+            await addDoc(collection(db, 'test'), { test: 'data', timestamp: new Date() });
+            console.log('Simple write successful');
+
 
             if (message.type === 'text') {
               const customerId = message.from;
