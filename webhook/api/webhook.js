@@ -149,9 +149,9 @@
 
 
 
+import {  collection, addDoc } from 'firebase/firestore';
 
 import { db } from '../../firebase/config.js';
-import { addDoc, collection } from 'firebase/firestore';
 import { Timestamp } from 'firebase/firestore';
 import { saveMessage } from '../../firebase/lib/messages.js';
 import { saveChatMessage } from '../../firebase/lib/chatHistory.js';
