@@ -1,5 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 import { saveMessage } from '../../firebase/lib/messages.js';
+import { saveChatMessage } from '../../firebase/lib/chatHistory.js';
+import { generateResponseWithHistory } from '../../gemini/lib/utils.js';
 
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
@@ -7,6 +9,8 @@ const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 
 export default async function handler(req, res) {
   const logs = [];
+
+
   
   try {
     console.log('Webhook called:', req.method, req.url);
@@ -45,9 +49,33 @@ export default async function handler(req, res) {
                 });
 
 
+                
                 if (message.type === 'text') {
-                  console.log('Sending echo message');
-                  await sendMessage(message.from, `Echo: ${message.text.body}`, logs);
+                const customerId = message.from;
+                const userMessage = message.text.body;
+                
+                // Save user message to chat history
+                await saveChatMessage(customerId, userMessage, false);
+                
+                // Generate AI response with chat history context
+                const aiResponse = await generateResponseWithHistory(customerId, userMessage);
+                
+                // Parse the JSON response
+                let responseData;
+                try {
+                    responseData = JSON.parse(aiResponse);
+                } catch (error) {
+                    responseData = {
+                    status: "error",
+                    message: "Sorry, I encountered an error processing your request."
+                    };
+                }
+                
+                // Save bot response to chat history
+                await saveChatMessage(customerId, responseData.message, true);
+                
+                // Send response to WhatsApp
+                await sendMessage(customerId, responseData.message, logs);
                 }
               }
             }
@@ -98,3 +126,9 @@ async function sendMessage(to, text, logs) {
     console.error('Error sending message:', error.message);
   }
 }
+
+
+
+
+
+
