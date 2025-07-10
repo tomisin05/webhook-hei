@@ -160,8 +160,10 @@ const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 
-export default async function handler(req, res) {
+export default async function handler(req, res) {  
   try {
+    console.log('Webhook called:', req.method, req.url);
+
     if (req.method === 'GET') {
       const mode = req.query['hub.mode'];
       const token = req.query['hub.verify_token'];
@@ -174,11 +176,13 @@ export default async function handler(req, res) {
       }
     } else if (req.method === 'POST') {
       const body = req.body;
-      
-      // Respond immediately to prevent retries
+      console.log('POST body:', JSON.stringify(body, null, 2));
+
       res.status(200).json({ status: 'EVENT_RECEIVED' });
 
       if (body.object === 'whatsapp_business_account') {
+        console.log('Processing WhatsApp message');
+    
         processMessagesAsync(body).catch(error => {
           console.error('Async processing error:', error);
         });
