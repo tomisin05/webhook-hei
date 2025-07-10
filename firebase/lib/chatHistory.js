@@ -50,7 +50,7 @@ export async function getChatHistory(customerId, messageLimit = 10) {
 export function formatChatHistoryForPrompt(chatHistory) {
   if (!chatHistory || chatHistory.length === 0) {
     return "No previous conversation history.";
-  }
+  } 
   
   return chatHistory.map(msg => 
     `${msg.isBot ? 'Bot' : 'Customer'}: ${msg.message}`
