@@ -8,6 +8,7 @@
     "build": "echo 'No build step required'"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "axios": "^1.6.0",
     "firebase": "^10.7.1"
   },
