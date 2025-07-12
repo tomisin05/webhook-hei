@@ -114,7 +114,17 @@ export async function generateResponseWithHistory(customerId, currentMessage) {
 
 
     const result = await model.generateContent(prompt);
-    return result.response.text();
+    const aiResponse = result.response.text();
+    
+    // LOG THE RAW AI RESPONSE
+    console.log('=== RAW AI RESPONSE START ===');
+    console.log(aiResponse);
+    console.log('=== RAW AI RESPONSE END ===');
+    console.log('Response length:', aiResponse.length);
+    console.log('First 100 chars:', aiResponse.substring(0, 100));
+    console.log('Last 100 chars:', aiResponse.substring(aiResponse.length - 100));
+    
+    return aiResponse;
   } catch (error) {
     console.error('Error generating response:', error);
     throw error;
