@@ -201,7 +201,24 @@ async function processMessagesAsync(body) {
 
                     try {
                         aiResponse = await generateResponseWithHistory(customerId, userMessage);
-                        responseData = JSON.parse(aiResponse);
+                        
+                        console.log('=== ABOUT TO PARSE JSON ===');
+                        console.log('Raw response type:', typeof aiResponse);
+                        console.log('Raw response:', aiResponse);
+                        
+                        // Clean the response
+                        let cleanResponse = aiResponse.trim();
+                        if (cleanResponse.startsWith('```json')) {
+                            cleanResponse = cleanResponse.replace(/```json\s*/, '').replace(/```\s*$/, '');
+                        }
+                        if (cleanResponse.startsWith('```')) {
+                            cleanResponse = cleanResponse.replace(/```\s*/, '').replace(/```\s*$/, '');
+                        }
+                        
+                        console.log('=== CLEANED RESPONSE ===');
+                        console.log(cleanResponse);
+                        
+                        const responseData = JSON.parse(cleanResponse);
                     } catch (error) {
                         console.error('Error generating response:', error);
                         responseData = {
