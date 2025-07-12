@@ -25,21 +25,44 @@ export default async function handler(req, res) {
       } else {
         res.status(403).send('Forbidden');
       }
+    // } else if (req.method === 'POST') {
+    //   const body = req.body;
+    //   console.log('POST body:', JSON.stringify(body, null, 2));
+
+
+    //   if (body.object === 'whatsapp_business_account') {
+    //     console.log('Processing WhatsApp message');
+        
+        
+        
+    //     try {
+    //     await processMessagesAsync(body); // ✅ this is the fix
+    //     } catch (error) {
+    //     console.error('Async processing error:', error);
+    //     }
+
+    //   }
+    // }
+
     } else if (req.method === 'POST') {
-      const body = req.body;
-      console.log('POST body:', JSON.stringify(body, null, 2));
+  const body = req.body;
+  console.log('POST body:', JSON.stringify(body, null, 2));
 
+  if (body.object === 'whatsapp_business_account') {
+    console.log('Processing WhatsApp message');
 
-      if (body.object === 'whatsapp_business_account') {
-        console.log('Processing WhatsApp message');
-        
-        
-        
-      processMessagesAsync(body).catch(error => {
-          console.error('Async processing error:', error);
-        });
-      }
+    try {
+      await processMessagesAsync(body); // ✅ this is the fix
+    } catch (error) {
+      console.error('Async processing error:', error);
     }
+
+    res.status(200).json({ status: 'EVENT_RECEIVED' }); // ✅ only after processing
+  } else {
+    res.status(404).json({ error: 'Not Found', logs });
+  }
+}
+
     
     res.status(200).json({ status: 'EVENT_RECEIVED' });
 
