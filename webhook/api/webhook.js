@@ -218,7 +218,7 @@ async function processMessagesAsync(body) {
                         console.log('=== CLEANED RESPONSE ===');
                         console.log(cleanResponse);
                         
-                        const responseData = JSON.parse(cleanResponse);
+                        responseData = JSON.parse(cleanResponse);
                     } catch (error) {
                         console.error('Error generating response:', error);
                         responseData = {
