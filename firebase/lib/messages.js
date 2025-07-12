@@ -40,7 +40,7 @@ export async function saveMessage(messageData) {
 }
 
 
-async function checkMessageExists(messageId) {
+export async function checkMessageExists(messageId) {
   try {
     const messageRef = doc(db, 'messages', messageId);
     const messageSnap = await getDoc(messageRef);

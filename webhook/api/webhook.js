@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
-import { saveMessage } from '../../firebase/lib/messages.js';
+import { saveMessage, checkMessageExists } from '../../firebase/lib/messages.js';
 import { saveChatMessage } from '../../firebase/lib/chatHistory.js';
 import { generateResponseWithHistory } from '../../gemini/lib/utils.js';
 
