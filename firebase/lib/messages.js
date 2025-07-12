@@ -14,7 +14,7 @@
 //   }
 // }
 
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { db } from '../config.js';
 
 export async function saveMessage(messageData) {
@@ -36,5 +36,17 @@ export async function saveMessage(messageData) {
   } catch (error) {
     console.error('Error saving message:', error);
     throw error;
+  }
+}
+
+
+async function checkMessageExists(messageId) {
+  try {
+    const messageRef = doc(db, 'messages', messageId);
+    const messageSnap = await getDoc(messageRef);
+    return messageSnap.exists();
+  } catch (error) {
+    console.error('Error checking message existence:', error);
+    return false; // If check fails, assume it doesn't exist to avoid blocking
   }
 }

@@ -7,70 +7,70 @@ const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 
-export default async function handler(req, res) {
-  const logs = [];
+// export default async function handler(req, res) {
+//   const logs = [];
 
 
   
-  try {
-    console.log('Webhook called:', req.method, req.url);
+//   try {
+//     console.log('Webhook called:', req.method, req.url);
 
-    if (req.method === 'GET') {
-      const mode = req.query['hub.mode'];
-      const token = req.query['hub.verify_token'];
-      const challenge = req.query['hub.challenge'];
+//     if (req.method === 'GET') {
+//       const mode = req.query['hub.mode'];
+//       const token = req.query['hub.verify_token'];
+//       const challenge = req.query['hub.challenge'];
 
-      if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-        res.status(200).send(challenge);
-      } else {
-        res.status(403).send('Forbidden');
-      }
-    // } else if (req.method === 'POST') {
-    //   const body = req.body;
-    //   console.log('POST body:', JSON.stringify(body, null, 2));
+//       if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+//         res.status(200).send(challenge);
+//       } else {
+//         res.status(403).send('Forbidden');
+//       }
+//     // } else if (req.method === 'POST') {
+//     //   const body = req.body;
+//     //   console.log('POST body:', JSON.stringify(body, null, 2));
 
 
-    //   if (body.object === 'whatsapp_business_account') {
-    //     console.log('Processing WhatsApp message');
+//     //   if (body.object === 'whatsapp_business_account') {
+//     //     console.log('Processing WhatsApp message');
         
         
         
-    //     try {
-    //     await processMessagesAsync(body); // ✅ this is the fix
-    //     } catch (error) {
-    //     console.error('Async processing error:', error);
-    //     }
+//     //     try {
+//     //     await processMessagesAsync(body); // ✅ this is the fix
+//     //     } catch (error) {
+//     //     console.error('Async processing error:', error);
+//     //     }
 
-    //   }
-    // }
+//     //   }
+//     // }
 
-    } else if (req.method === 'POST') {
-  const body = req.body;
-  console.log('POST body:', JSON.stringify(body, null, 2));
+//     } else if (req.method === 'POST') {
+//   const body = req.body;
+//   console.log('POST body:', JSON.stringify(body, null, 2));
 
-  if (body.object === 'whatsapp_business_account') {
-    console.log('Processing WhatsApp message');
+//   if (body.object === 'whatsapp_business_account') {
+//     console.log('Processing WhatsApp message');
 
-    try {
-      await processMessagesAsync(body); // ✅ this is the fix
-    } catch (error) {
-      console.error('Async processing error:', error);
-    }
+//     try {
+//       await processMessagesAsync(body); // ✅ this is the fix
+//     } catch (error) {
+//       console.error('Async processing error:', error);
+//     }
 
-    res.status(200).json({ status: 'EVENT_RECEIVED' }); // ✅ only after processing
-  } else {
-    res.status(404).json({ error: 'Not Found', logs });
-  }
-}
+//     res.status(200).json({ status: 'EVENT_RECEIVED' }); // ✅ only after processing
+//   } else {
+//     res.status(404).json({ error: 'Not Found', logs });
+//   }
+// }
 
     
-    res.status(200).json({ status: 'EVENT_RECEIVED' });
+//     res.status(200).json({ status: 'EVENT_RECEIVED' });
 
-  } catch (error) {
-    console.error('Handler error:', error);
-    res.status(500).json({ error: error.message, logs });
-  }
-}
+//   } catch (error) {
+//     console.error('Handler error:', error);
+//     res.status(500).json({ error: error.message, logs });
+//   }
+// }
 
 
 //         console.log('Sending response');
@@ -85,13 +85,71 @@ export default async function handler(req, res) {
 //   }
 // }
 
+
+export default async function handler(req, res) {
+  const logs = [];
+
+  try {
+    console.log('Webhook called:', req.method, req.url);
+
+    if (req.method === 'GET') {
+      const mode = req.query['hub.mode'];
+      const token = req.query['hub.verify_token'];
+      const challenge = req.query['hub.challenge'];
+
+      if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+        return res.status(200).send(challenge);
+      } else {
+        return res.status(403).send('Forbidden');
+      }
+    }
+
+    if (req.method === 'POST') {
+      const body = req.body;
+      console.log('POST body:', JSON.stringify(body, null, 2));
+
+      if (body.object === 'whatsapp_business_account') {
+        console.log('Processing WhatsApp message');
+
+        try {
+          await processMessagesAsync(body); // ✅ wait before responding
+        } catch (error) {
+          console.error('Async processing error:', error);
+          // We won't re-throw to avoid double response
+        }
+
+        return res.status(200).json({ status: 'EVENT_RECEIVED', logs });
+      } else {
+        return res.status(404).json({ error: 'Not a WhatsApp event' });
+      }
+    }
+
+    return res.status(405).json({ error: 'Method Not Allowed' });
+
+  } catch (error) {
+    console.error('Handler error:', error);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+}
+
+
+
 async function processMessagesAsync(body) {
     for (const entry of body.entry || []) {
-          for (const change of entry.changes || []) {
+        for (const change of entry.changes || []) {
             if (change.field === 'messages') {
               const messages = change.value.messages;
               for (const message of messages || []) {
                 console.log('Received message:', message);
+
+                // Check for duplicate message
+                const existing = await checkMessageExists(message.id);
+                if (existing) {
+                    console.log('Duplicate message detected, skipping:', message.id);
+                    continue; // Skip to next message
+                }
                 
                 await saveMessage({
                   messageId: message.id,
@@ -104,33 +162,58 @@ async function processMessagesAsync(body) {
 
 
                 
+                // if (message.type === 'text') {
+                // const customerId = message.from;
+                // const userMessage = message.text.body;
+                
+                // // Save user message to chat history
+                // await saveChatMessage(customerId, userMessage, false);
+                
+                // // Generate AI response with chat history context
+                // const aiResponse = await generateResponseWithHistory(customerId, userMessage);
+                
+                // // Parse the JSON response
+                // let responseData;
+                // try {
+                //     responseData = JSON.parse(aiResponse);
+                // } catch (error) {
+                //     responseData = {
+                //     status: "error",
+                //     message: "Sorry, I encountered an error processing your request."
+                //     };
+                // }
+                
+                // // Save bot response to chat history
+                // await saveChatMessage(customerId, responseData.message, true);
+                
+                // // Send response to WhatsApp
+                // await sendMessage(customerId, responseData.message, logs);
+                // }
+
                 if (message.type === 'text') {
-                const customerId = message.from;
-                const userMessage = message.text.body;
-                
-                // Save user message to chat history
-                await saveChatMessage(customerId, userMessage, false);
-                
-                // Generate AI response with chat history context
-                const aiResponse = await generateResponseWithHistory(customerId, userMessage);
-                
-                // Parse the JSON response
-                let responseData;
-                try {
-                    responseData = JSON.parse(aiResponse);
-                } catch (error) {
-                    responseData = {
-                    status: "error",
-                    message: "Sorry, I encountered an error processing your request."
-                    };
-                }
-                
-                // Save bot response to chat history
-                await saveChatMessage(customerId, responseData.message, true);
-                
-                // Send response to WhatsApp
-                await sendMessage(customerId, responseData.message, logs);
-                }
+                    const customerId = message.from;
+                    const userMessage = message.text.body;
+
+                    await saveChatMessage(customerId, userMessage, false);
+
+                    let aiResponse;
+                    let responseData;
+
+                    try {
+                        aiResponse = await generateResponseWithHistory(customerId, userMessage);
+                        responseData = JSON.parse(aiResponse);
+                    } catch (error) {
+                        console.error('Error generating response:', error);
+                        responseData = {
+                        status: "error",
+                        message: "Sorry, I'm currently overloaded. Please try again shortly."
+                        };
+                    }
+
+                    await saveChatMessage(customerId, responseData.message, true);
+                    await sendMessage(customerId, responseData.message, logs);
+                    }
+
               }
             }
           }
