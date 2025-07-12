@@ -211,7 +211,7 @@ async function processMessagesAsync(body) {
                     }
 
                     await saveChatMessage(customerId, responseData.message, true);
-                    await sendMessage(customerId, responseData.message, logs);
+                    await sendMessage(customerId, responseData.message);
                     }
 
               }
@@ -221,7 +221,7 @@ async function processMessagesAsync(body) {
     }
 
 
-async function sendMessage(to, text, logs) {
+async function sendMessage(to, text) {
   console.log('Attempting to send message to: ' + to);
   console.log('Sending message to:', to, 'Text:', text);
   console.log('Using PHONE_NUMBER_ID:', PHONE_NUMBER_ID);
