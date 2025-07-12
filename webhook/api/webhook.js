@@ -29,7 +29,6 @@ export default async function handler(req, res) {
       const body = req.body;
       console.log('POST body:', JSON.stringify(body, null, 2));
 
-      res.status(200).json({ status: 'EVENT_RECEIVED' });
 
       if (body.object === 'whatsapp_business_account') {
         console.log('Processing WhatsApp message');
@@ -41,6 +40,9 @@ export default async function handler(req, res) {
         });
       }
     }
+    
+    res.status(200).json({ status: 'EVENT_RECEIVED' });
+
   } catch (error) {
     console.error('Handler error:', error);
     res.status(500).json({ error: error.message, logs });
