@@ -108,6 +108,7 @@ export async function generateResponseWithHistory(customerId, currentMessage) {
 
                 Use status = "error" only for fallback or input validation failure.
 
+                CRITICAL: Return ONLY valid JSON without any markdown formatting, code blocks, or additional text. Do not wrap the response in \`\`\`json or any other formatting.
                 `;
 
 
