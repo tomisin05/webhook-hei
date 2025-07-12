@@ -216,7 +216,7 @@ async function processMessagesAsync(body) {
                         }
                         
                         console.log('=== CLEANED RESPONSE ===');
-                        console.log(cleanResponse);
+                        console.log(cleanResponse); 
                         
                         responseData = JSON.parse(cleanResponse);
                     } catch (error) {
